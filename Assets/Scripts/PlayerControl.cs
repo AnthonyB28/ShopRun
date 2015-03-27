@@ -18,7 +18,8 @@ public class PlayerControl : MonoBehaviour
     public bool m_MovementEnabled = true;
     public float m_Speed = 1.0f;
     public float m_SpeedUp = 0.001f;
-    private float m_CurSpeedUp = 0f;
+    public float m_SpeedUpPenalty = 7;
+    public float m_CurSpeedUp = 0f;
 
     public bool m_LeftBlock;
     public bool m_RightBlock;
@@ -40,6 +41,7 @@ public class PlayerControl : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        m_SpeedUpPenalty = 7 * m_SpeedUp * 50;
     }
 
     // Update is called once per frame
@@ -64,10 +66,32 @@ public class PlayerControl : MonoBehaviour
                     case Direction.DOWN: direction = Vector3.back; break;
                 }
 
-                if (m_CurrentEnabler && m_Direction != m_PreviousDir)
+                if (m_CurrentEnabler)
                 {
-                    transform.position = m_CurrentEnabler.transform.GetChild(0).position;
-                    m_CurrentEnabler = null;
+                    if (m_Direction == m_CurrentEnabler.m_DirToEnable)
+                    {
+                        SetBlocks(m_CurrentEnabler.m_DirToDisableOnExit, true);
+                    }
+
+                    if (m_Direction != m_PreviousDir)
+                    {
+                        transform.position = m_CurrentEnabler.transform.GetChild(0).position;
+                    }
+                }
+
+                if(m_PreviousDir == Direction.LEFT && m_Direction == Direction.RIGHT ||
+                    m_PreviousDir == Direction.RIGHT && m_Direction == Direction.LEFT ||
+                    m_PreviousDir == Direction.UP && m_PreviousDir == Direction.DOWN ||
+                    m_PreviousDir == Direction.DOWN && m_PreviousDir == Direction.UP)
+                {
+                    if(m_CurSpeedUp > m_SpeedUpPenalty)
+                    {
+                        m_CurSpeedUp -= m_SpeedUpPenalty;
+                    }
+                    else
+                    {
+                        m_CurSpeedUp = m_SpeedUp;
+                    }
                 }
 
                 transform.Translate(direction * (m_Speed + m_CurSpeedUp) * Time.deltaTime);
@@ -177,21 +201,54 @@ public class PlayerControl : MonoBehaviour
         }
         else if(col.gameObject.tag == "DirectionEnabler")
         {
+            if (m_CurrentEnabler)
+            {
+                SetBlocks(m_CurrentEnabler.m_DirToDisableOnExit, false);
+            }
+
             DirectionEnabler component = col.gameObject.GetComponent<DirectionEnabler>();
             m_CurrentEnabler = component;
             switch (component.m_DirToEnable)
             {
-                case Direction.LEFT: 
+                case Direction.LEFT:
+                    if (!component.m_OneWay)
+                    {
                         m_LeftBlock = false;
+                    }
+                    else if (m_Direction == Direction.RIGHT)
+                    {
+                        m_LeftBlock = false;
+                    }
                     break;
                 case Direction.RIGHT:
+                    if (!component.m_OneWay)
+                    {
                         m_RightBlock = false;
+                    }
+                    else if (m_Direction == Direction.LEFT)
+                    {
+                        m_RightBlock = false;
+                    }
                     break;
                 case Direction.UP:
+                    if (!component.m_OneWay)
+                    {
                         m_UpBlock = false;
+                    }
+                    else if (m_Direction == Direction.DOWN)
+                    {
+                        m_UpBlock = false;
+                    }
                     break;
-                case Direction.DOWN: 
+                case Direction.DOWN:
+                    if (!component.m_OneWay)
+                    {
                         m_DownBlock = false;
+                    }
+                    else if (m_Direction == Direction.UP)
+                    {
+                        m_DownBlock = false;
+                    }
                     break;
             }
         }
@@ -215,22 +272,64 @@ public class PlayerControl : MonoBehaviour
                 switch (component.m_DirToEnable)
                 {
                     case Direction.LEFT:
+                        if (!component.m_OneWay)
+                        {
                             m_LeftBlock = true;
+                        }
+                        else if (m_Direction == Direction.RIGHT)
+                        {
+                            m_LeftBlock = true;
+                        }
                         break;
                     case Direction.RIGHT:
+                        if (!component.m_OneWay)
+                        {
                             m_RightBlock = true;
+                        }
+                        else if (m_Direction == Direction.LEFT)
+                        {
+                            m_RightBlock = true;
+                        }
                         break;
                     case Direction.UP:
+                        if (!component.m_OneWay)
+                        {
                             m_UpBlock = true;
+                        }
+                        else if (m_Direction == Direction.DOWN)
+                        {
+                            m_UpBlock = true;
+                        }
                         break;
                     case Direction.DOWN:
+                        if (!component.m_OneWay)
+                        {
                             m_DownBlock = true;
+                        }
+                        else if (m_Direction == Direction.UP)
+                        {
+                            m_DownBlock = true;
+                        }
                         break;
                 }
             }
             if(component == m_CurrentEnabler)
             {
                 m_CurrentEnabler = null;
+            }
+        }
+    }
+
+    void SetBlocks(List<Direction> toSet, bool setTrue)
+    {
+        foreach(Direction dir in toSet)
+        {
+            switch(dir)
+            {
+                case Direction.UP: m_UpBlock = setTrue; break;
+                case Direction.DOWN: m_DownBlock = setTrue; break;
+                case Direction.LEFT: m_LeftBlock = setTrue; break;
+                case Direction.RIGHT: m_RightBlock = setTrue; break;
             }
         }
     }
