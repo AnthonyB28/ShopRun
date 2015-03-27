@@ -2,17 +2,17 @@
 using System.Collections;
 using System.Collections.Generic;
 
+public enum Direction
+{
+    LEFT = 0,
+    RIGHT,
+    UP,
+    DOWN,
+    STOPPED
+}
+
 public class PlayerControl : MonoBehaviour
 {
-
-    public enum Direction
-    {
-        LEFT = 0,
-        RIGHT,
-        UP,
-        DOWN,
-        STOPPED
-    }
 
     public Direction m_Direction;
     public bool m_MovementEnabled = true;
@@ -27,12 +27,15 @@ public class PlayerControl : MonoBehaviour
 
     public float minSwipeLength = 5f;
 
+    private Direction m_PreviousDir;
     Vector2 firstPressPos;
     Vector2 secondPressPos;
     Vector2 currentSwipe;
 
     Vector2 firstClickPos;
     Vector2 secondClickPos;
+
+    DirectionEnabler m_CurrentEnabler;
 
     // Use this for initialization
     void Start()
@@ -61,8 +64,15 @@ public class PlayerControl : MonoBehaviour
                     case Direction.DOWN: direction = Vector3.back; break;
                 }
 
+                if (m_CurrentEnabler && m_Direction != m_PreviousDir)
+                {
+                    transform.position = m_CurrentEnabler.transform.GetChild(0).position;
+                    m_CurrentEnabler = null;
+                }
+
                 transform.Translate(direction * (m_Speed + m_CurSpeedUp) * Time.deltaTime);
                 m_CurSpeedUp += m_SpeedUp;
+                m_PreviousDir = m_Direction;
             }
             else
             {
@@ -157,25 +167,71 @@ public class PlayerControl : MonoBehaviour
 
     void OnTriggerEnter(Collider col)
     {
-        if (col.gameObject.tag == "RightDetector")
+        if (col.gameObject.tag == "RightDisable")
         {
             m_LeftBlock = true;
         }
-        else if (col.gameObject.tag == "LeftDetector")
+        else if (col.gameObject.tag == "LeftDisable")
         {
             m_RightBlock = true;
+        }
+        else if(col.gameObject.tag == "DirectionEnabler")
+        {
+            DirectionEnabler component = col.gameObject.GetComponent<DirectionEnabler>();
+            m_CurrentEnabler = component;
+            switch (component.m_DirToEnable)
+            {
+                case Direction.LEFT: 
+                        m_LeftBlock = false;
+                    break;
+                case Direction.RIGHT:
+                        m_RightBlock = false;
+                    break;
+                case Direction.UP:
+                        m_UpBlock = false;
+                    break;
+                case Direction.DOWN: 
+                        m_DownBlock = false;
+                    break;
+            }
         }
     }
 
     void OnTriggerExit(Collider col)
     {
-        if(col.gameObject.tag == "RightDetector")
+        if(col.gameObject.tag == "RightDisable")
         {
             m_LeftBlock = false;
         }
-        else if (col.gameObject.tag == "LeftDetector")
+        else if (col.gameObject.tag == "LeftDisable")
         {
             m_RightBlock = false;
+        }
+        else if (col.gameObject.tag == "DirectionEnabler")
+        {
+            DirectionEnabler component = col.gameObject.GetComponent<DirectionEnabler>();
+            if (component.m_DisableDirOnExit)
+            {
+                switch (component.m_DirToEnable)
+                {
+                    case Direction.LEFT:
+                            m_LeftBlock = true;
+                        break;
+                    case Direction.RIGHT:
+                            m_RightBlock = true;
+                        break;
+                    case Direction.UP:
+                            m_UpBlock = true;
+                        break;
+                    case Direction.DOWN:
+                            m_DownBlock = true;
+                        break;
+                }
+            }
+            if(component == m_CurrentEnabler)
+            {
+                m_CurrentEnabler = null;
+            }
         }
     }
 }
