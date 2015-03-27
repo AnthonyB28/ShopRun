@@ -10,12 +10,15 @@ public class PlayerControl : MonoBehaviour
         LEFT = 0,
         RIGHT,
         UP,
-        DOWN
+        DOWN,
+        STOPPED
     }
 
     public Direction m_Direction;
     public bool m_MovementEnabled = true;
     public float m_Speed = 1.0f;
+    public float m_SpeedUp = 0.001f;
+    private float m_CurSpeedUp = 0f;
 
     public float minSwipeLength = 5f;
     Vector2 firstPressPos;
@@ -41,16 +44,24 @@ public class PlayerControl : MonoBehaviour
         {
             Vector3 direction = Vector3.zero;
 
-            // Might be able to bring this switch case out of Update()
-            switch (m_Direction)
+            if (m_Direction != Direction.STOPPED)
             {
-                case Direction.LEFT: direction = Vector3.left; break;
-                case Direction.RIGHT: direction = Vector3.right; break;
-                case Direction.UP: direction = Vector3.forward; break;
-                case Direction.DOWN: direction = Vector3.back; break;
-            }
+                // Might be able to bring this switch case out of Update()
+                switch (m_Direction)
+                {
+                    case Direction.LEFT: direction = Vector3.left; break;
+                    case Direction.RIGHT: direction = Vector3.right; break;
+                    case Direction.UP: direction = Vector3.forward; break;
+                    case Direction.DOWN: direction = Vector3.back; break;
+                }
 
-            transform.Translate(direction * m_Speed * Time.deltaTime);
+                transform.Translate(direction * (m_Speed + m_CurSpeedUp) * Time.deltaTime);
+                m_CurSpeedUp += m_SpeedUp;
+            }
+            else
+            {
+                m_CurSpeedUp = m_SpeedUp;
+            }
         }
     }
 
@@ -104,10 +115,7 @@ public class PlayerControl : MonoBehaviour
             {
                 firstClickPos = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
             }
-            else
-            {
-                Debug.Log ("None");
-            }
+
             if (Input.GetMouseButtonUp(0))
             {
                 secondClickPos = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
