@@ -20,7 +20,13 @@ public class PlayerControl : MonoBehaviour
     public float m_SpeedUp = 0.001f;
     private float m_CurSpeedUp = 0f;
 
+    public bool m_LeftBlock;
+    public bool m_RightBlock;
+    public bool m_UpBlock;
+    public bool m_DownBlock;
+
     public float minSwipeLength = 5f;
+
     Vector2 firstPressPos;
     Vector2 secondPressPos;
     Vector2 currentSwipe;
@@ -50,7 +56,7 @@ public class PlayerControl : MonoBehaviour
                 switch (m_Direction)
                 {
                     case Direction.LEFT: direction = Vector3.left; break;
-                    case Direction.RIGHT: direction = Vector3.right; break;
+                    case Direction.RIGHT: direction = Vector3.right ; break;
                     case Direction.UP: direction = Vector3.forward; break;
                     case Direction.DOWN: direction = Vector3.back; break;
                 }
@@ -82,30 +88,7 @@ public class PlayerControl : MonoBehaviour
                 secondPressPos = new Vector2(t.position.x, t.position.y);
                 currentSwipe = new Vector3(secondPressPos.x - firstPressPos.x, secondPressPos.y - firstPressPos.y);
 
-                // Make sure it was a legit swipe, not a tap
-                if (currentSwipe.magnitude < minSwipeLength)
-                {
-                    return;
-                }
-
-                currentSwipe.Normalize();
-
-                if (currentSwipe.y > 0 && currentSwipe.x > -0.5f && currentSwipe.x < 0.5f)
-                {
-                    m_Direction = Direction.UP;
-                }
-                else if (currentSwipe.y < 0 && currentSwipe.x > -0.5f && currentSwipe.x < 0.5f)
-                {
-                    m_Direction = Direction.DOWN;
-                }
-                else if (currentSwipe.x < 0 && currentSwipe.y > -0.5f && currentSwipe.y < 0.5f)
-                {
-                    m_Direction = Direction.LEFT;
-                }
-                else if (currentSwipe.x > 0 && currentSwipe.y > -0.5f && currentSwipe.y < 0.5f)
-                {
-                    m_Direction = Direction.RIGHT;
-                }
+                SetDirectionFromGesture(currentSwipe);
             }
         }
         else
@@ -121,39 +104,42 @@ public class PlayerControl : MonoBehaviour
                 secondClickPos = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
                 currentSwipe = new Vector3(secondClickPos.x - firstClickPos.x, secondClickPos.y - firstClickPos.y);
 
-                // Make sure it was a legit swipe, not a tap
-                if (currentSwipe.magnitude < minSwipeLength)
-                {
-                    return;
-                }
-
-                currentSwipe.Normalize();
-
-                //Swipe directional check
-                // Swipe up
-                if (currentSwipe.y > 0 && currentSwipe.x > -0.5f && currentSwipe.x < 0.5f)
-                {
-                    m_Direction = Direction.UP;
-                }
-                else if (currentSwipe.y < 0 && currentSwipe.x > -0.5f && currentSwipe.x < 0.5f)
-                {
-                    m_Direction = Direction.DOWN;
-                }
-                else if (currentSwipe.x < 0 && currentSwipe.y > -0.5f && currentSwipe.y < 0.5f)
-                {
-                    m_Direction = Direction.LEFT;
-                }
-                else if (currentSwipe.x > 0 && currentSwipe.y > -0.5f && currentSwipe.y < 0.5f)
-                {
-                    m_Direction = Direction.RIGHT;
-                }
+                SetDirectionFromGesture(currentSwipe);
             }
+        }
+    }
 
+    void SetDirectionFromGesture(Vector3 currentSwipe)
+    {
+        // Make sure it was a legit swipe, not a tap
+        if (currentSwipe.magnitude < minSwipeLength)
+        {
+            return;
+        }
+
+        currentSwipe.Normalize();
+
+        if (currentSwipe.y > 0 && currentSwipe.x > -0.5f && currentSwipe.x < 0.5f && !m_UpBlock)
+        {
+            m_Direction = Direction.UP;
+        }
+        else if (currentSwipe.y < 0 && currentSwipe.x > -0.5f && currentSwipe.x < 0.5f && !m_DownBlock)
+        {
+            m_Direction = Direction.DOWN;
+        }
+        else if (currentSwipe.x < 0 && currentSwipe.y > -0.5f && currentSwipe.y < 0.5f && !m_LeftBlock)
+        {
+            m_Direction = Direction.LEFT;
+        }
+        else if (currentSwipe.x > 0 && currentSwipe.y > -0.5f && currentSwipe.y < 0.5f && !m_RightBlock)
+        {
+            m_Direction = Direction.RIGHT;
         }
     }
 
     void OnCollisionEnter(Collision col)
     {
+
         if(col.gameObject.tag == "Wall")
         {
             Vector3 direction = Vector3.zero;
@@ -166,6 +152,30 @@ public class PlayerControl : MonoBehaviour
             }
             transform.Translate(direction * 15 * Time.deltaTime);
             m_Direction = Direction.STOPPED;
+        }
+    }
+
+    void OnTriggerEnter(Collider col)
+    {
+        if (col.gameObject.tag == "RightDetector")
+        {
+            m_LeftBlock = true;
+        }
+        else if (col.gameObject.tag == "LeftDetector")
+        {
+            m_RightBlock = true;
+        }
+    }
+
+    void OnTriggerExit(Collider col)
+    {
+        if(col.gameObject.tag == "RightDetector")
+        {
+            m_LeftBlock = false;
+        }
+        else if (col.gameObject.tag == "LeftDetector")
+        {
+            m_RightBlock = false;
         }
     }
 }
