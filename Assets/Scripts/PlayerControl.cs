@@ -151,4 +151,21 @@ public class PlayerControl : MonoBehaviour
 
         }
     }
+
+    void OnCollisionEnter(Collision col)
+    {
+        if(col.gameObject.tag == "Wall")
+        {
+            Vector3 direction = Vector3.zero;
+            switch (m_Direction)
+            {
+                case Direction.LEFT: direction = Vector3.right; break;
+                case Direction.RIGHT: direction = Vector3.left; break;
+                case Direction.UP: direction = Vector3.back; break;
+                case Direction.DOWN: direction = Vector3.forward; break;
+            }
+            transform.Translate(direction * 15 * Time.deltaTime);
+            m_Direction = Direction.STOPPED;
+        }
+    }
 }
