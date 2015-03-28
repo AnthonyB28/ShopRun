@@ -24,7 +24,7 @@ public class CashierScript : MonoBehaviour {
     {
         if(m_GoalEnabled)
         {
-            Debug.Log("Win");
+            GameManager.Instance.EndGame();
         }
     }
 }

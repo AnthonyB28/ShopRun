@@ -13,7 +13,6 @@ public enum Direction
 
 public class PlayerControl : MonoBehaviour
 {
-
     public Direction m_Direction;
     public bool m_MovementEnabled = true;
     public float m_Speed = 1.0f;
@@ -28,7 +27,7 @@ public class PlayerControl : MonoBehaviour
 
     public float minSwipeLength = 5f;
 
-    private Direction m_PreviousDir;
+    private Direction m_PreviousDir = Direction.UP;
     Vector2 firstPressPos;
     Vector2 secondPressPos;
     Vector2 currentSwipe;
@@ -86,6 +85,7 @@ public class PlayerControl : MonoBehaviour
                     m_PreviousDir == Direction.UP && m_Direction == Direction.DOWN ||
                     m_PreviousDir == Direction.DOWN && m_Direction == Direction.UP)
                 {
+                    transform.GetChild(0).Rotate(Vector3.down, 180);
                     SetDirBlocks(m_PreviousDir, false); // Allow player to reverse dir
                     if(m_CurSpeedUp > m_SpeedUpPenalty)
                     {
@@ -96,6 +96,21 @@ public class PlayerControl : MonoBehaviour
                         m_CurSpeedUp = m_SpeedUp;
                     }
                 }
+                else if (m_PreviousDir == Direction.UP && m_Direction == Direction.LEFT ||
+                        m_PreviousDir == Direction.LEFT && m_Direction == Direction.DOWN ||
+                        m_PreviousDir == Direction.RIGHT && m_Direction == Direction.UP ||
+                        m_PreviousDir == Direction.DOWN && m_Direction == Direction.RIGHT)
+                {
+                    transform.GetChild(0).Rotate(Vector3.down, 90);
+                }
+                else if (m_PreviousDir == Direction.LEFT && m_Direction == Direction.UP ||
+                    m_PreviousDir == Direction.UP && m_Direction == Direction.RIGHT ||
+                    m_PreviousDir == Direction.RIGHT && m_Direction == Direction.DOWN ||
+                    m_PreviousDir == Direction.DOWN && m_Direction == Direction.LEFT)
+                {
+                    transform.GetChild(0).Rotate(Vector3.down, -90);
+                }
+                
 
                 transform.Translate(direction * (m_Speed + m_CurSpeedUp) * Time.deltaTime);
                 m_CurSpeedUp += m_SpeedUp;
