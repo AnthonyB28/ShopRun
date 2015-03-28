@@ -184,7 +184,7 @@ public class PlayerControl : MonoBehaviour
                 case Direction.UP: direction = Vector3.back; break;
                 case Direction.DOWN: direction = Vector3.forward; break;
             }
-            transform.Translate(direction * 15 * Time.deltaTime);
+            transform.Translate(direction * 40 * Time.deltaTime);
             m_Direction = Direction.STOPPED;
         }
     }
@@ -211,45 +211,24 @@ public class PlayerControl : MonoBehaviour
             switch (component.m_DirToEnable)
             {
                 case Direction.LEFT:
-                    if (!component.m_OneWay)
-                    {
                         m_LeftBlock = false;
-                    }
-                    else if (m_Direction == Direction.RIGHT)
-                    {
-                        m_LeftBlock = false;
-                    }
                     break;
                 case Direction.RIGHT:
-                    if (!component.m_OneWay)
-                    {
                         m_RightBlock = false;
-                    }
-                    else if (m_Direction == Direction.LEFT)
-                    {
-                        m_RightBlock = false;
-                    }
                     break;
                 case Direction.UP:
-                    if (!component.m_OneWay)
-                    {
                         m_UpBlock = false;
-                    }
-                    else if (m_Direction == Direction.DOWN)
-                    {
-                        m_UpBlock = false;
-                    }
                     break;
                 case Direction.DOWN:
-                    if (!component.m_OneWay)
-                    {
                         m_DownBlock = false;
-                    }
-                    else if (m_Direction == Direction.UP)
-                    {
-                        m_DownBlock = false;
-                    }
                     break;
+            }
+            if(component.m_ForceOppsiteDir)
+            {
+                if(m_Direction == component.m_ForceDirection)
+                {
+                    m_Direction = Direction.STOPPED;
+                }
             }
         }
     }
@@ -272,44 +251,16 @@ public class PlayerControl : MonoBehaviour
                 switch (component.m_DirToEnable)
                 {
                     case Direction.LEFT:
-                        if (!component.m_OneWay)
-                        {
                             m_LeftBlock = true;
-                        }
-                        else if (m_Direction == Direction.RIGHT)
-                        {
-                            m_LeftBlock = true;
-                        }
                         break;
                     case Direction.RIGHT:
-                        if (!component.m_OneWay)
-                        {
                             m_RightBlock = true;
-                        }
-                        else if (m_Direction == Direction.LEFT)
-                        {
-                            m_RightBlock = true;
-                        }
                         break;
                     case Direction.UP:
-                        if (!component.m_OneWay)
-                        {
                             m_UpBlock = true;
-                        }
-                        else if (m_Direction == Direction.DOWN)
-                        {
-                            m_UpBlock = true;
-                        }
                         break;
                     case Direction.DOWN:
-                        if (!component.m_OneWay)
-                        {
                             m_DownBlock = true;
-                        }
-                        else if (m_Direction == Direction.UP)
-                        {
-                            m_DownBlock = true;
-                        }
                         break;
                 }
             }
